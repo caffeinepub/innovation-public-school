@@ -1,0 +1,70 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-remove-the-dependency-on-internet-identity-for-admin-panel-access-so-that-admin-login-and-admin-route-protection-are-based-only-on-username-password-authentication",
+      "featureTitle": "Remove the dependency on Internet Identity for Admin Panel access so that admin login and admin route protection are based only on username + password authentication.",
+      "files": [
+        "frontend/src/components/admin/AdminLoginModal.tsx",
+        "frontend/src/components/admin/AdminRouteGuard.tsx",
+        "frontend/src/hooks/useAdminAuth.ts",
+        "frontend/src/hooks/useAdminSession.ts",
+        "frontend/src/pages/admin/AdminDashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-move-admin-credential-verification-to-the-backend-and-remove-any-hardcoded-admin-username-password-checks-from-frontend-source-code",
+      "featureTitle": "Move admin credential verification to the backend and remove any hardcoded admin username/password checks from frontend source code.",
+      "files": [
+        "frontend/src/components/admin/AdminLoginModal.tsx",
+        "frontend/src/hooks/useAdminAuth.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-admin-dashboard-data-layer-to-call-the-backend-using-the-new-admin-session-mechanism-for-admin-only-queries-mutations-without-modifying-immutable-frontend-paths",
+      "featureTitle": "Update the Admin Dashboard data layer to call the backend using the new admin session mechanism for admin-only queries/mutations, without modifying immutable frontend paths.",
+      "files": [
+        "frontend/src/hooks/useAdminSession.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "frontend/src/hooks/useAdminSession.ts": "Custom hook for managing admin session tokens in localStorage with expiration handling and validation methods.",
+  "frontend/src/hooks/useAdminAuth.ts": "Admin authentication hook that manages username/password login flow and session state without using Internet Identity.",
+  "frontend/src/components/admin/AdminRouteGuard.tsx": "Route guard component that protects admin routes by checking session-based authentication and displays login modal when unauthenticated.",
+  "frontend/src/components/admin/AdminLoginModal.tsx": "Modal dialog for admin login with username and password fields that validates credentials and manages login state.",
+  "frontend/src/pages/admin/AdminDashboardPage.tsx": "Admin dashboard page with tabs for content, gallery, enquiries, contact, and analytics management, including session-based logout functionality."
+}

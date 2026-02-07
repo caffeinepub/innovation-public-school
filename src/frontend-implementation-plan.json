@@ -1,0 +1,95 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Admin Panel: replace Internet Identity admin access with backend-verified username/password session",
+  "requirements": [
+    {
+      "id": "REQ-17",
+      "summary": "Remove Internet Identity from Admin Panel access and protect /admin using a username/password admin session.",
+      "acceptanceCriteria": [
+        "Accessing /admin while logged out shows an admin login prompt (username + password) and does not trigger or require an Internet Identity login flow.",
+        "After successful username/password login, the user is routed to /admin without using an Internet Identity identity.",
+        "Admin logout ends the username/password session and returns the user to a logged-out admin state."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useAdminAuth.ts",
+          "operation": "modify",
+          "description": "Replace Internet Identity-based admin auth with a username/password session-backed admin auth API (isAuthenticated, login, logout, loginStatus) that does not import or invoke useInternetIdentity."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminSession.ts",
+          "operation": "create",
+          "description": "Add a small admin-session utility hook to store/restore a backend-issued admin session indicator (e.g., token) in browser storage, expose helpers (get/set/clear) and a stable React-friendly state for route guards and mutations."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminRouteGuard.tsx",
+          "operation": "modify",
+          "description": "Update admin route protection to rely only on the new admin session state (not Principal/Internet Identity). When unauthenticated, automatically show the admin login prompt/modal on /admin rather than an Internet Identity flow, and use English-only messaging."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminLoginModal.tsx",
+          "operation": "modify",
+          "description": "Switch the admin login modal to submit username/password to a backend capability and store the returned admin session indicator via the new session hook; ensure successful login routes to /admin and logout state returns to logged-out admin state, without any Internet Identity calls."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminDashboardPage.tsx",
+          "operation": "modify",
+          "description": "Update Admin Dashboard logout handling to clear the new username/password admin session (and React Query cache) and route the user back to a logged-out state, without using Internet Identity."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Remove hardcoded admin credentials from the frontend and use backend credential verification with clear error handling.",
+      "acceptanceCriteria": [
+        "No frontend file contains the literal admin password (\"innovation123publicschool\") or performs local string comparisons for admin authentication.",
+        "The backend exposes a login method that accepts username and password and returns an authenticated admin session indicator (e.g., session token).",
+        "Invalid credentials are rejected by the backend and the frontend displays a clear error message in English (e.g., \"Invalid credentials\")."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/admin/AdminLoginModal.tsx",
+          "operation": "modify",
+          "description": "Remove all hardcoded credential literals and local credential comparisons; call the backend login capability with username/password, show an English error (e.g., \"Invalid credentials\") on rejection, and handle generic failures (e.g., network/unknown) with an English fallback message."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend backend type definitions to include the new admin login capability (username/password -> admin session indicator) and any related admin-session-based methods needed by the Admin Dashboard data layer."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminAuth.ts",
+          "operation": "modify",
+          "description": "Ensure the admin auth hook no longer depends on Internet Identity and instead calls the backend login capability and persists only the returned admin session indicator (never credentials)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "summary": "Update Admin Dashboard React Query data layer to use the new admin session mechanism for admin-only reads/mutations without touching immutable frontend paths.",
+      "acceptanceCriteria": [
+        "Admin Dashboard screens (content manager, gallery manager, enquiries manager, contact details manager) continue to work after the authentication change.",
+        "Admin-only React Query hooks use the admin session mechanism when calling admin-only backend methods.",
+        "Implementation does not require edits to any immutable paths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update admin-only React Query hooks used by the Admin Dashboard (content CRUD, gallery CRUD, enquiries management, contact details updates) to include the admin session indicator from the new session hook when calling admin-only backend capabilities; keep existing hook exports so Admin UI screens continue to work without refactors."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminSession.ts",
+          "operation": "create",
+          "description": "Expose a minimal API for retrieving the current admin session indicator for use by React Query hooks (e.g., a getter suitable for queryFn/mutationFn) and for clearing session on logout."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Align type definitions with the admin-session-based variants of admin-only backend capabilities so useQueries can pass the session indicator when performing admin-only reads/mutations."
+        }
+      ]
+    }
+  ]
+}

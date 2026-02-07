@@ -1,0 +1,70 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-07T03:43:36.805Z",
+  "summary": "Diff adds a session-token hook and new admin login/route guard UI, but frontend auth still uses a hardcoded username/password (including the literal password), and backend changes shown do not implement a username/password login method nor token-based authorization for admin operations. Admin data-layer updates to pass session tokens are not evidenced.",
+  "missing_requirements": [
+    {
+      "id": "REQ-17",
+      "requirement": "Admin Panel access and route protection must be based only on username/password authentication (no Internet Identity flow), including proper logged-out /admin behavior and logout returning to logged-out admin state.",
+      "reason": "While an AdminRouteGuard and login modal were added, the diff does not show /admin routing being wrapped/protected by this guard or any removal of Internet Identity dependency for admin access across the app. Evidence only shows new components/hooks, not route integration.",
+      "evidence": [
+        "frontend/src/components/admin/AdminRouteGuard.tsx",
+        "frontend/src/components/admin/AdminLoginModal.tsx",
+        "frontend/src/hooks/useAdminAuth.ts"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "requirement": "Move admin credential verification to the backend and remove any hardcoded admin username/password checks from frontend source code; backend exposes a login method returning a session indicator; invalid credentials rejected by backend with clear English error shown in frontend.",
+      "reason": "Frontend still performs a local string comparison for credentials and includes the literal admin password. Backend login method (e.g., adminLogin) is commented as not implemented, and there is no evidence of a backend method issuing/verifying session tokens.",
+      "evidence": [
+        "frontend/src/hooks/useAdminAuth.ts"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "requirement": "Enforce admin authorization for all admin actions using the new username/password session mechanism (token/session), not Principal-based Internet Identity.",
+      "reason": "Backend code shown continues to authorize admin mutations via AccessControl permission checks based on caller Principal (e.g., hasPermission(..., caller, #admin)), with no evidence of validating a session token supplied by the frontend for admin operations.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-20",
+      "requirement": "Update Admin Dashboard data layer to call backend using the new admin session mechanism for admin-only queries/mutations without modifying immutable paths.",
+      "reason": "The diff shows new auth/session hooks and UI, but no evidence that admin CRUD/query hooks (content/gallery/enquiries/contact managers) now attach a session token or call new token-secured backend methods.",
+      "evidence": [
+        "frontend/src/hooks/useAdminAuth.ts",
+        "frontend/src/pages/admin/AdminDashboardPage.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Added an Analytics tab/panel to the Admin Dashboard.",
+      "reason": "The BuildRequest requirements focus on switching admin authentication/authorization to username/password; an analytics panel is not requested.",
+      "evidence": [
+        "frontend/src/pages/admin/AdminDashboardPage.tsx"
+      ]
+    },
+    {
+      "description": "Introduced/continued Principal-based AccessControl authorization mixins in backend code path shown.",
+      "reason": "REQ-19 explicitly requires admin authorization to use the new username/password session mechanism (not Principal-based Internet Identity). The backend evidence shows Principal/caller-based permission checks, which is contrary to the requested mechanism.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "confidence": 0.74,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/admin/AdminLoginModal.tsx",
+    "frontend/src/components/admin/AdminRouteGuard.tsx",
+    "frontend/src/hooks/useAdminAuth.ts",
+    "frontend/src/hooks/useAdminSession.ts",
+    "frontend/src/pages/admin/AdminDashboardPage.tsx",
+    "project_state.json"
+  ]
+}
