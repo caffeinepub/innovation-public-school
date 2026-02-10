@@ -86,6 +86,8 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'adminLogin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+  'adminLogout' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createContentSection' : IDL.Func([ContentSection], [], []),
   'createGalleryItem' : IDL.Func([GalleryItem], [], []),
@@ -99,6 +101,7 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getContactDetails' : IDL.Func([], [ContactDetails], ['query']),
   'getContentSection' : IDL.Func([IDL.Text], [ContentSection], ['query']),
+  'getEnquiry' : IDL.Func([IDL.Text], [Enquiry], ['query']),
   'getGalleryItemsByCategory' : IDL.Func(
       [IDL.Text],
       [IDL.Vec(GalleryItem)],
@@ -113,19 +116,10 @@ export const idlService = IDL.Service({
   'markEnquiryAsRead' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'submitEnquiry' : IDL.Func([Enquiry], [], []),
-  'toggleMapDisplay' : IDL.Func([], [], []),
   'updateContactDetails' : IDL.Func([ContactDetails], [], []),
-  'updateContentSection' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
-      [],
-      [],
-    ),
-  'updateGalleryItem' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
-      [],
-      [],
-    ),
-  'updateMapEmbed' : IDL.Func([IDL.Text], [], []),
+  'updateContentSection' : IDL.Func([IDL.Text, ContentSection], [], []),
+  'updateGalleryItem' : IDL.Func([IDL.Text, GalleryItem], [], []),
+  'validateAdminSession' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
 });
 
 export const idlInitArgs = [];
@@ -209,6 +203,8 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'adminLogin' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+    'adminLogout' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createContentSection' : IDL.Func([ContentSection], [], []),
     'createGalleryItem' : IDL.Func([GalleryItem], [], []),
@@ -226,6 +222,7 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getContactDetails' : IDL.Func([], [ContactDetails], ['query']),
     'getContentSection' : IDL.Func([IDL.Text], [ContentSection], ['query']),
+    'getEnquiry' : IDL.Func([IDL.Text], [Enquiry], ['query']),
     'getGalleryItemsByCategory' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(GalleryItem)],
@@ -240,19 +237,10 @@ export const idlFactory = ({ IDL }) => {
     'markEnquiryAsRead' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'submitEnquiry' : IDL.Func([Enquiry], [], []),
-    'toggleMapDisplay' : IDL.Func([], [], []),
     'updateContactDetails' : IDL.Func([ContactDetails], [], []),
-    'updateContentSection' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
-        [],
-        [],
-      ),
-    'updateGalleryItem' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
-        [],
-        [],
-      ),
-    'updateMapEmbed' : IDL.Func([IDL.Text], [], []),
+    'updateContentSection' : IDL.Func([IDL.Text, ContentSection], [], []),
+    'updateGalleryItem' : IDL.Func([IDL.Text, GalleryItem], [], []),
+    'validateAdminSession' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   });
 };
 

@@ -1,66 +1,54 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T03:43:36.808Z",
+  "generatedAt": "2026-02-10T04:43:09.978Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-17",
-        "summary": "Remove the dependency on Internet Identity for Admin Panel access so that admin login and admin route protection are based only on username + password authentication.",
+        "id": "REQ-1",
+        "summary": "Make admin login reliably grant access to the /admin dashboard after successful credentials entry, including when the user is not logged in with Internet Identity (anonymous actor). Ensure the system does not get stuck on “Verifying admin access…” and that /admin renders the login prompt when unauthenticated.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useAdminAuth.ts",
+          "frontend/src/hooks/adminSessionStore.ts",
           "frontend/src/hooks/useAdminSession.ts",
+          "frontend/src/hooks/useAdminAuth.ts",
           "frontend/src/components/admin/AdminRouteGuard.tsx",
-          "frontend/src/components/admin/AdminLoginModal.tsx",
-          "frontend/src/pages/admin/AdminDashboardPage.tsx"
+          "frontend/src/components/admin/AdminLoginModal.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useAdminAuth.ts",
+          "frontend/src/hooks/adminSessionStore.ts",
           "frontend/src/hooks/useAdminSession.ts",
-          "frontend/src/components/admin/AdminRouteGuard.tsx",
-          "frontend/src/components/admin/AdminLoginModal.tsx",
-          "frontend/src/pages/admin/AdminDashboardPage.tsx"
+          "frontend/src/hooks/useAdminAuth.ts",
+          "frontend/src/components/admin/AdminRouteGuard.tsx"
         ]
       },
       {
-        "id": "REQ-18",
-        "summary": "Move admin credential verification to the backend and remove any hardcoded admin username/password checks from frontend source code.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/admin/AdminLoginModal.tsx",
-          "frontend/src/backend.d.ts",
-          "frontend/src/hooks/useAdminAuth.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/admin/AdminLoginModal.tsx",
-          "frontend/src/hooks/useAdminAuth.ts"
-        ]
-      },
-      {
-        "id": "REQ-19",
-        "summary": "Enforce admin authorization for all admin actions using the new username/password session mechanism (not Principal-based Internet Identity), including content section CRUD, gallery CRUD, enquiries management, and contact details updates.",
+        "id": "REQ-2",
+        "summary": "Fix backend admin session/auth logic so that adminLogin does not fail due to authorization/role-assignment constraints and validateAdminSession accurately reflects the logged-in admin session. Session validation must work for the same caller principal that performed adminLogin, and logout must invalidate the session so validateAdminSession returns false afterward.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-20",
-        "summary": "Update the Admin Dashboard data layer to call the backend using the new admin session mechanism for admin-only queries/mutations, without modifying immutable frontend paths.",
+        "id": "REQ-3",
+        "summary": "Ensure frontend admin session handling provides actionable, user-friendly English errors when adminLogin/validateAdminSession fail (e.g., invalid credentials, unauthorized, backend unavailable), and never exposes credentials in logs or error messages.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/errorMessage.ts",
           "frontend/src/hooks/useAdminSession.ts",
-          "frontend/src/backend.d.ts"
+          "frontend/src/components/admin/AdminLoginModal.tsx",
+          "frontend/src/components/admin/AdminRouteGuard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useAdminSession.ts"
+          "frontend/src/utils/errorMessage.ts",
+          "frontend/src/hooks/useAdminSession.ts",
+          "frontend/src/components/admin/AdminRouteGuard.tsx"
         ]
       }
     ]
@@ -68,15 +56,15 @@
   "changedFiles": [
     "backend/main.mo",
     "build-request.json",
-    "build-template/README.md",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/admin/AdminLoginModal.tsx",
     "frontend/src/components/admin/AdminRouteGuard.tsx",
+    "frontend/src/hooks/adminSessionStore.ts",
     "frontend/src/hooks/useAdminAuth.ts",
     "frontend/src/hooks/useAdminSession.ts",
-    "frontend/src/pages/admin/AdminDashboardPage.tsx",
+    "frontend/src/utils/errorMessage.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -8,7 +8,11 @@ export default function GalleryPreview() {
   const activeItems = galleryItems.filter((item) => item.isActive).slice(0, 6);
 
   return (
-    <section className="py-16 md:py-20">
+    <section 
+      className="py-16 md:py-20" 
+      data-testid="gallery-preview-section"
+      id="gallery-preview"
+    >
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">Gallery</h2>

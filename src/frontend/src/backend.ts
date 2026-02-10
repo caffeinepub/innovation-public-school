@@ -147,6 +147,8 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
+    adminLogin(username: string, password: string): Promise<string>;
+    adminLogout(token: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createContentSection(section: ContentSection): Promise<void>;
     createGalleryItem(item: GalleryItem): Promise<void>;
@@ -160,17 +162,17 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getContactDetails(): Promise<ContactDetails>;
     getContentSection(id: string): Promise<ContentSection>;
+    getEnquiry(id: string): Promise<Enquiry>;
     getGalleryItemsByCategory(category: string): Promise<Array<GalleryItem>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     markEnquiryAsRead(id: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitEnquiry(newEnquiry: Enquiry): Promise<void>;
-    toggleMapDisplay(): Promise<void>;
-    updateContactDetails(newDetails: ContactDetails): Promise<void>;
-    updateContentSection(id: string, newTitle: string, newBody: string, isPublished: boolean): Promise<void>;
-    updateGalleryItem(id: string, newTitle: string, newCategory: string, isActive: boolean): Promise<void>;
-    updateMapEmbed(mapLink: string): Promise<void>;
+    updateContactDetails(details: ContactDetails): Promise<void>;
+    updateContentSection(id: string, section: ContentSection): Promise<void>;
+    updateGalleryItem(id: string, item: GalleryItem): Promise<void>;
+    validateAdminSession(token: string): Promise<boolean>;
 }
 import type { ExternalBlob as _ExternalBlob, GalleryItem as _GalleryItem, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -270,6 +272,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor._initializeAccessControlWithSecret(arg0);
+            return result;
+        }
+    }
+    async adminLogin(arg0: string, arg1: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.adminLogin(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.adminLogin(arg0, arg1);
+            return result;
+        }
+    }
+    async adminLogout(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.adminLogout(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.adminLogout(arg0);
             return result;
         }
     }
@@ -455,6 +485,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getEnquiry(arg0: string): Promise<Enquiry> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getEnquiry(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getEnquiry(arg0);
+            return result;
+        }
+    }
     async getGalleryItemsByCategory(arg0: string): Promise<Array<GalleryItem>> {
         if (this.processError) {
             try {
@@ -539,20 +583,6 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async toggleMapDisplay(): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.toggleMapDisplay();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.toggleMapDisplay();
-            return result;
-        }
-    }
     async updateContactDetails(arg0: ContactDetails): Promise<void> {
         if (this.processError) {
             try {
@@ -567,45 +597,45 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateContentSection(arg0: string, arg1: string, arg2: string, arg3: boolean): Promise<void> {
+    async updateContentSection(arg0: string, arg1: ContentSection): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateContentSection(arg0, arg1, arg2, arg3);
+                const result = await this.actor.updateContentSection(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateContentSection(arg0, arg1, arg2, arg3);
+            const result = await this.actor.updateContentSection(arg0, arg1);
             return result;
         }
     }
-    async updateGalleryItem(arg0: string, arg1: string, arg2: string, arg3: boolean): Promise<void> {
+    async updateGalleryItem(arg0: string, arg1: GalleryItem): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateGalleryItem(arg0, arg1, arg2, arg3);
+                const result = await this.actor.updateGalleryItem(arg0, await to_candid_GalleryItem_n10(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateGalleryItem(arg0, arg1, arg2, arg3);
+            const result = await this.actor.updateGalleryItem(arg0, await to_candid_GalleryItem_n10(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
-    async updateMapEmbed(arg0: string): Promise<void> {
+    async validateAdminSession(arg0: string): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateMapEmbed(arg0);
+                const result = await this.actor.validateAdminSession(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateMapEmbed(arg0);
+            const result = await this.actor.validateAdminSession(arg0);
             return result;
         }
     }

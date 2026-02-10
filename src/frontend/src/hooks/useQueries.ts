@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { getErrorMessage } from '../utils/errorMessage';
 import type { ContentSection, GalleryItem, Enquiry, ContactDetails, UserProfile } from '../backend';
 
 // Content Sections
@@ -23,7 +24,11 @@ export function useCreateContentSection() {
   return useMutation({
     mutationFn: async (section: ContentSection) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createContentSection(section);
+      try {
+        await actor.createContentSection(section);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentSections'] });
@@ -48,7 +53,12 @@ export function useUpdateContentSection() {
       isPublished: boolean;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateContentSection(id, title, body, isPublished);
+      try {
+        const section: ContentSection = { id, title, body, isPublished };
+        await actor.updateContentSection(id, section);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentSections'] });
@@ -63,7 +73,11 @@ export function useDeleteContentSection() {
   return useMutation({
     mutationFn: async (id: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteContentSection(id);
+      try {
+        await actor.deleteContentSection(id);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contentSections'] });
@@ -105,7 +119,11 @@ export function useCreateGalleryItem() {
   return useMutation({
     mutationFn: async (item: GalleryItem) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createGalleryItem(item);
+      try {
+        await actor.createGalleryItem(item);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['galleryItems'] });
@@ -123,14 +141,36 @@ export function useUpdateGalleryItem() {
       title,
       category,
       isActive,
+      image,
     }: {
       id: string;
       title: string;
       category: string;
       isActive: boolean;
+      image?: GalleryItem['image'];
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateGalleryItem(id, title, category, isActive);
+      try {
+        // Fetch the current item to get the image if not provided
+        const currentItems = await actor.getAllGalleryItems();
+        const currentItem = currentItems.find((item) => item.id === id);
+        
+        if (!currentItem) {
+          throw new Error('Gallery item not found');
+        }
+
+        const updatedItem: GalleryItem = {
+          id,
+          title,
+          category,
+          isActive,
+          image: image || currentItem.image,
+        };
+
+        await actor.updateGalleryItem(id, updatedItem);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['galleryItems'] });
@@ -145,7 +185,11 @@ export function useDeleteGalleryItem() {
   return useMutation({
     mutationFn: async (id: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteGalleryItem(id);
+      try {
+        await actor.deleteGalleryItem(id);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['galleryItems'] });
@@ -161,7 +205,16 @@ export function useGetAllEnquiries() {
     queryKey: ['enquiries'],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllEnquiries();
+      try {
+        return await actor.getAllEnquiries();
+      } catch (error) {
+        // If unauthorized, return empty array instead of throwing
+        const errorMsg = getErrorMessage(error);
+        if (errorMsg.includes('permission') || errorMsg.includes('admin')) {
+          return [];
+        }
+        throw error;
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -185,7 +238,11 @@ export function useMarkEnquiryAsRead() {
   return useMutation({
     mutationFn: async (id: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.markEnquiryAsRead(id);
+      try {
+        await actor.markEnquiryAsRead(id);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enquiries'] });
@@ -200,7 +257,11 @@ export function useDeleteEnquiry() {
   return useMutation({
     mutationFn: async (id: string) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteEnquiry(id);
+      try {
+        await actor.deleteEnquiry(id);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enquiries'] });
@@ -219,6 +280,7 @@ export function useGetContactDetails() {
       return actor.getContactDetails();
     },
     enabled: !!actor && !isFetching,
+    retry: 1,
   });
 }
 
@@ -229,37 +291,11 @@ export function useUpdateContactDetails() {
   return useMutation({
     mutationFn: async (details: ContactDetails) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateContactDetails(details);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contactDetails'] });
-    },
-  });
-}
-
-export function useToggleMapDisplay() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.toggleMapDisplay();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['contactDetails'] });
-    },
-  });
-}
-
-export function useUpdateMapEmbed() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (mapLink: string) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateMapEmbed(mapLink);
+      try {
+        await actor.updateContactDetails(details);
+      } catch (error) {
+        throw new Error(getErrorMessage(error));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contactDetails'] });
@@ -319,5 +355,6 @@ export function useIsCallerAdmin() {
     },
     enabled: !!actor && !isFetching,
     retry: false,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 }

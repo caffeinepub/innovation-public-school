@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Edit, Trash2, Save, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import {
   useGetAllContentSections,
   useCreateContentSection,
@@ -12,6 +13,7 @@ import {
   useDeleteContentSection,
 } from '../../../hooks/useQueries';
 import { toast } from 'sonner';
+import { getErrorMessage } from '../../../utils/errorMessage';
 import type { ContentSection } from '../../../backend';
 import {
   Dialog,
@@ -21,21 +23,65 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { defaultContentSections } from '../../../content/defaultContent';
+
+type MergedSection = ContentSection & {
+  isFromBackend: boolean;
+};
 
 export default function ContentManager() {
-  const { data: sections = [] } = useGetAllContentSections();
+  const { data: backendSections = [] } = useGetAllContentSections();
   const createSection = useCreateContentSection();
   const updateSection = useUpdateContentSection();
   const deleteSection = useDeleteContentSection();
 
-  const [editingSection, setEditingSection] = useState<ContentSection | null>(null);
+  const [editingSection, setEditingSection] = useState<MergedSection | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newSection, setNewSection] = useState<ContentSection>({
     id: '',
     title: '',
     body: '',
     isPublished: true,
   });
+
+  // Merge backend sections with default sections
+  const mergedSections = useMemo((): MergedSection[] => {
+    const backendMap = new Map(backendSections.map((s) => [s.id, s]));
+    const merged: MergedSection[] = [];
+
+    // Add all default sections, preferring backend version if exists
+    defaultContentSections.forEach((defaultSection) => {
+      const backendVersion = backendMap.get(defaultSection.id);
+      if (backendVersion) {
+        merged.push({ ...backendVersion, isFromBackend: true });
+        backendMap.delete(defaultSection.id);
+      } else {
+        merged.push({ ...defaultSection, isFromBackend: false });
+      }
+    });
+
+    // Add any backend sections that aren't in defaults
+    backendMap.forEach((section) => {
+      merged.push({ ...section, isFromBackend: true });
+    });
+
+    // Sort by title
+    return merged.sort((a, b) => a.title.localeCompare(b.title));
+  }, [backendSections]);
+
+  // Filter sections based on search query
+  const filteredSections = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return mergedSections;
+    }
+    const query = searchQuery.toLowerCase();
+    return mergedSections.filter(
+      (section) =>
+        section.id.toLowerCase().includes(query) ||
+        section.title.toLowerCase().includes(query)
+    );
+  }, [mergedSections, searchQuery]);
 
   const handleCreate = async () => {
     if (!newSection.id || !newSection.title) {
@@ -49,39 +95,64 @@ export default function ContentManager() {
       setIsCreateDialogOpen(false);
       setNewSection({ id: '', title: '', body: '', isPublished: true });
     } catch (error) {
-      toast.error('Failed to create section');
+      toast.error(getErrorMessage(error));
     }
   };
 
-  const handleUpdate = async (section: ContentSection) => {
+  const handleUpdate = async (section: MergedSection) => {
     try {
-      await updateSection.mutateAsync({
-        id: section.id,
-        title: section.title,
-        body: section.body,
-        isPublished: section.isPublished,
-      });
-      toast.success('Section updated successfully');
+      if (section.isFromBackend) {
+        // Update existing backend section
+        await updateSection.mutateAsync({
+          id: section.id,
+          title: section.title,
+          body: section.body,
+          isPublished: section.isPublished,
+        });
+      } else {
+        // Create new backend section from default
+        await createSection.mutateAsync({
+          id: section.id,
+          title: section.title,
+          body: section.body,
+          isPublished: section.isPublished,
+        });
+      }
+      toast.success('Section saved successfully');
       setEditingSection(null);
     } catch (error) {
-      toast.error('Failed to update section');
+      toast.error(getErrorMessage(error));
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (section: MergedSection) => {
+    if (!section.isFromBackend) {
+      toast.error('Cannot delete default sections that haven\'t been saved yet');
+      return;
+    }
+
     if (!confirm('Are you sure you want to delete this section?')) return;
 
     try {
-      await deleteSection.mutateAsync(id);
+      await deleteSection.mutateAsync(section.id);
       toast.success('Section deleted successfully');
     } catch (error) {
-      toast.error('Failed to delete section');
+      toast.error(getErrorMessage(error));
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search by ID or title..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -118,21 +189,24 @@ export default function ContentManager() {
                 <Textarea
                   id="new-body"
                   placeholder="Section content"
-                  rows={6}
                   value={newSection.body}
                   onChange={(e) => setNewSection({ ...newSection, body: e.target.value })}
+                  rows={6}
                 />
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="new-published"
                   checked={newSection.isPublished}
-                  onCheckedChange={(checked) => setNewSection({ ...newSection, isPublished: checked })}
+                  onCheckedChange={(checked) =>
+                    setNewSection({ ...newSection, isPublished: checked })
+                  }
                 />
                 <Label htmlFor="new-published">Published</Label>
               </div>
               <Button onClick={handleCreate} disabled={createSection.isPending}>
-                Create Section
+                <Save className="mr-2 h-4 w-4" />
+                {createSection.isPending ? 'Creating...' : 'Create Section'}
               </Button>
             </div>
           </DialogContent>
@@ -140,7 +214,7 @@ export default function ContentManager() {
       </div>
 
       <div className="space-y-4">
-        {sections.map((section) => (
+        {filteredSections.map((section) => (
           <div key={section.id} className="rounded-lg border p-4">
             {editingSection?.id === section.id ? (
               <div className="space-y-4">
@@ -156,11 +230,11 @@ export default function ContentManager() {
                 <div className="space-y-2">
                   <Label>Content</Label>
                   <Textarea
-                    rows={8}
                     value={editingSection.body}
                     onChange={(e) =>
                       setEditingSection({ ...editingSection, body: e.target.value })
                     }
+                    rows={6}
                   />
                 </div>
                 <div className="flex items-center space-x-2">
@@ -175,10 +249,10 @@ export default function ContentManager() {
                 <div className="flex gap-2">
                   <Button
                     onClick={() => handleUpdate(editingSection)}
-                    disabled={updateSection.isPending}
+                    disabled={updateSection.isPending || createSection.isPending}
                   >
                     <Save className="mr-2 h-4 w-4" />
-                    Save
+                    {updateSection.isPending || createSection.isPending ? 'Saving...' : 'Save'}
                   </Button>
                   <Button variant="outline" onClick={() => setEditingSection(null)}>
                     <X className="mr-2 h-4 w-4" />
@@ -188,12 +262,23 @@ export default function ContentManager() {
               </div>
             ) : (
               <div>
-                <div className="mb-2 flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold">{section.title}</h3>
-                    <p className="text-sm text-muted-foreground">ID: {section.id}</p>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-lg">{section.title}</h3>
+                      {section.isPublished ? (
+                        <Badge variant="default">Published</Badge>
+                      ) : (
+                        <Badge variant="outline">Draft</Badge>
+                      )}
+                      {!section.isFromBackend && (
+                        <Badge variant="secondary">Default</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">ID: {section.id}</p>
+                    <p className="text-sm line-clamp-2">{section.body}</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -201,26 +286,17 @@ export default function ContentManager() {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(section.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {section.isFromBackend && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(section)}
+                        disabled={deleteSection.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                </div>
-                <p className="line-clamp-3 text-sm text-muted-foreground">{section.body}</p>
-                <div className="mt-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      section.isPublished
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                    }`}
-                  >
-                    {section.isPublished ? 'Published' : 'Draft'}
-                  </span>
                 </div>
               </div>
             )}

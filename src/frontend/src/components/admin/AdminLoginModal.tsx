@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Shield } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminSession } from '../../hooks/useAdminSession';
 import { toast } from 'sonner';
 
 interface AdminLoginModalProps {
@@ -14,51 +14,72 @@ interface AdminLoginModalProps {
 }
 
 export default function AdminLoginModal({ open, onOpenChange }: AdminLoginModalProps) {
+  const { login, isValid } = useAdminSession();
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { isAuthenticated, login, loginStatus } = useAdminAuth();
-  const navigate = useNavigate();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async () => {
-    if (!username || !password) {
-      toast.error('Please enter both username and password');
-      return;
-    }
-
-    const success = await login(username, password);
-    
-    if (success) {
+  // If authenticated, close modal and redirect
+  useEffect(() => {
+    if (isValid && open) {
       toast.success('Login successful');
       onOpenChange(false);
       navigate({ to: '/admin' });
-    } else {
-      toast.error('Invalid credentials');
+    }
+  }, [isValid, open, onOpenChange, navigate]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!open) {
+      setUsername('');
       setPassword('');
+      setError(null);
+    }
+  }, [open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!username.trim() || !password.trim()) {
+      setError('Please enter both username and password');
+      return;
+    }
+
+    setIsLoggingIn(true);
+    try {
+      await login(username, password);
+      // Clear password immediately after successful login
+      setPassword('');
+      // Success handled by useEffect above
+    } catch (err) {
+      // Clear password immediately after failed login attempt
+      setPassword('');
+      // Display sanitized error message - never include credentials
+      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
-
-  // If already authenticated, close modal and redirect
-  if (isAuthenticated) {
-    if (open) {
-      onOpenChange(false);
-      navigate({ to: '/admin' });
-    }
-    return null;
-  }
-
-  const isLoggingIn = loginStatus === 'logging-in';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Admin Panel Login</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Admin Panel Login
+          </DialogTitle>
           <DialogDescription>
-            Enter your credentials to access the admin dashboard.
+            Enter your username and password to access the admin dashboard.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
             <Input
@@ -69,6 +90,7 @@ export default function AdminLoginModal({ open, onOpenChange }: AdminLoginModalP
               onChange={(e) => setUsername(e.target.value)}
               disabled={isLoggingIn}
               autoComplete="username"
+              autoFocus
             />
           </div>
 
@@ -80,27 +102,35 @@ export default function AdminLoginModal({ open, onOpenChange }: AdminLoginModalP
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !isLoggingIn) {
-                  handleLogin();
-                }
-              }}
               disabled={isLoggingIn}
               autoComplete="current-password"
             />
           </div>
 
-          <Button onClick={handleLogin} disabled={isLoggingIn || !username || !password} className="w-full">
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <Button 
+            type="submit"
+            disabled={isLoggingIn}
+            className="w-full"
+          >
             {isLoggingIn ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Logging in...
               </>
             ) : (
-              'Login'
+              <>
+                <Shield className="mr-2 h-4 w-4" />
+                Log in
+              </>
             )}
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

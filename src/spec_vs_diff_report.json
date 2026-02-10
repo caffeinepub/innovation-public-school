@@ -1,70 +1,57 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T03:43:36.805Z",
-  "summary": "Diff adds a session-token hook and new admin login/route guard UI, but frontend auth still uses a hardcoded username/password (including the literal password), and backend changes shown do not implement a username/password login method nor token-based authorization for admin operations. Admin data-layer updates to pass session tokens are not evidenced.",
+  "generatedAt": "2026-02-10T04:43:09.975Z",
+  "summary": "Frontend changes clearly address the admin route-guard loading hang, add sessionStorage-backed admin session persistence, and introduce user-friendly error states with retry/login-again flows. However, the backend changes related to adminLogin/validateAdminSession/adminLogout are truncated in the diff summary, so it cannot be confirmed that the required backend session/token behavior is fully implemented. Several unrelated frontend features (navigation deduplication, header/footer updates, gallery preview test IDs, etc.) appear added/changed beyond the stated scope of restoring admin access.",
   "missing_requirements": [
     {
-      "id": "REQ-17",
-      "requirement": "Admin Panel access and route protection must be based only on username/password authentication (no Internet Identity flow), including proper logged-out /admin behavior and logout returning to logged-out admin state.",
-      "reason": "While an AdminRouteGuard and login modal were added, the diff does not show /admin routing being wrapped/protected by this guard or any removal of Internet Identity dependency for admin access across the app. Evidence only shows new components/hooks, not route integration.",
+      "id": "REQ-2",
+      "requirement": "Fix backend admin session/auth logic so adminLogin returns a non-empty session token for valid credentials, validateAdminSession returns true for that token for the same caller principal, and adminLogout invalidates the session (validateAdminSession returns false afterward). Invalid credentials must not create a valid session and must return a safe error.",
+      "reason": "The backend file diff is truncated right when the Admin Authentication API begins; the diff summary shows new state for adminSessions but does not show implementations of adminLogin/validateAdminSession/adminLogout or token generation/validation logic, so the acceptance criteria cannot be verified from the provided evidence.",
       "evidence": [
-        "frontend/src/components/admin/AdminRouteGuard.tsx",
-        "frontend/src/components/admin/AdminLoginModal.tsx",
-        "frontend/src/hooks/useAdminAuth.ts"
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "requirement": "Move admin credential verification to the backend and remove any hardcoded admin username/password checks from frontend source code; backend exposes a login method returning a session indicator; invalid credentials rejected by backend with clear English error shown in frontend.",
-      "reason": "Frontend still performs a local string comparison for credentials and includes the literal admin password. Backend login method (e.g., adminLogin) is commented as not implemented, and there is no evidence of a backend method issuing/verifying session tokens.",
-      "evidence": [
-        "frontend/src/hooks/useAdminAuth.ts"
-      ]
-    },
-    {
-      "id": "REQ-19",
-      "requirement": "Enforce admin authorization for all admin actions using the new username/password session mechanism (token/session), not Principal-based Internet Identity.",
-      "reason": "Backend code shown continues to authorize admin mutations via AccessControl permission checks based on caller Principal (e.g., hasPermission(..., caller, #admin)), with no evidence of validating a session token supplied by the frontend for admin operations.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "requirement": "Update Admin Dashboard data layer to call backend using the new admin session mechanism for admin-only queries/mutations without modifying immutable paths.",
-      "reason": "The diff shows new auth/session hooks and UI, but no evidence that admin CRUD/query hooks (content/gallery/enquiries/contact managers) now attach a session token or call new token-secured backend methods.",
-      "evidence": [
-        "frontend/src/hooks/useAdminAuth.ts",
-        "frontend/src/pages/admin/AdminDashboardPage.tsx"
+        "backend/main.mo (truncated at 'Admin Authentication API')"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added an Analytics tab/panel to the Admin Dashboard.",
-      "reason": "The BuildRequest requirements focus on switching admin authentication/authorization to username/password; an analytics panel is not requested.",
+      "description": "Centralized site navigation configuration with deduplication and corresponding Header/Footer refactors to use it.",
+      "reason": "Not requested by REQ-1/REQ-2/REQ-3 (scope is admin login/session + route guard).",
       "evidence": [
-        "frontend/src/pages/admin/AdminDashboardPage.tsx"
+        "frontend-file-summaries.txt (mentions frontend/src/utils/siteNavigation.ts, frontend/src/components/layout/Header.tsx, frontend/src/components/layout/Footer.tsx)"
       ]
     },
     {
-      "description": "Introduced/continued Principal-based AccessControl authorization mixins in backend code path shown.",
-      "reason": "REQ-19 explicitly requires admin authorization to use the new username/password session mechanism (not Principal-based Internet Identity). The backend evidence shows Principal/caller-based permission checks, which is contrary to the requested mechanism.",
+      "description": "Gallery preview changes adding data-testid/id for single rendering verification.",
+      "reason": "Not requested; unrelated to admin access restoration.",
       "evidence": [
-        "backend/main.mo"
+        "frontend-file-summaries.txt (mentions frontend/src/components/home/GalleryPreview.tsx)"
+      ]
+    },
+    {
+      "description": "Default content definitions and broader admin/content CRUD and query hook implementations (content manager, contact details manager, react-query hooks).",
+      "reason": "Non-goals include adding new admin product features beyond restoring access; these changes appear to expand/modify admin feature surface area beyond authentication/session fixes.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/content/defaultContent.ts, frontend/src/components/admin/content/ContentManager.tsx, frontend/src/components/admin/contact/ContactDetailsManager.tsx, frontend/src/hooks/useQueries.ts, frontend/src/hooks/useSiteContent.ts)"
+      ]
+    },
+    {
+      "description": "Updates to admin dashboard page structure (tabs for content/gallery/enquiries/contact) and removal of principal ID display.",
+      "reason": "Not required to fix login/session/route-guard behavior; appears to be additional admin UI/product behavior changes.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/pages/admin/AdminDashboardPage.tsx)"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.64,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/admin/AdminLoginModal.tsx",
     "frontend/src/components/admin/AdminRouteGuard.tsx",
+    "frontend/src/hooks/adminSessionStore.ts",
     "frontend/src/hooks/useAdminAuth.ts",
     "frontend/src/hooks/useAdminSession.ts",
-    "frontend/src/pages/admin/AdminDashboardPage.tsx",
+    "frontend/src/utils/errorMessage.ts",
     "project_state.json"
   ]
 }

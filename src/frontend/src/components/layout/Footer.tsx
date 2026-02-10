@@ -2,18 +2,13 @@ import { Link } from '@tanstack/react-router';
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 import { SiFacebook, SiX, SiInstagram, SiYoutube } from 'react-icons/si';
 import { useGetContactDetails } from '../../hooks/useQueries';
-
-const quickLinks = [
-  { name: 'Home', path: '/' },
-  { name: 'About Us', path: '/about' },
-  { name: 'Academics', path: '/academics' },
-  { name: 'Admissions', path: '/admissions' },
-  { name: 'Gallery', path: '/gallery' },
-  { name: 'Contact', path: '/contact' },
-];
+import { navigationLinks, deduplicateLinks } from '../../utils/siteNavigation';
 
 export default function Footer() {
   const { data: contactDetails } = useGetContactDetails();
+
+  // Ensure quick links are deduplicated
+  const quickLinks = deduplicateLinks(navigationLinks);
 
   return (
     <footer className="border-t bg-muted/30">

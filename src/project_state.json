@@ -1,206 +1,41 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
-  "summary": "Build a modern, premium, fully responsive, SEO-ready website for \"Innovation Public School\" with blue/white/light grey styling, key pages (Home, About, Academics, Admissions, Gallery, Contact), and a floating Admin Panel for secure login and site/content management.",
-  "architectural_notes": [
-    "Include a floating admin entry point fixed bottom-right on all pages that launches authentication flow before accessing dashboard.",
-    "Build the site to be mobile-first responsive, performant (fast-loading), and SEO-friendly (semantic structure).",
-    "Admin Panel authentication must use only direct username/password (no third-party/internet identity providers such as Google/Microsoft social login)."
-  ],
+  "projectStateVersion": 3,
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [
-    "Admin credentials provided in the request appear intended to be static; hardcoding credentials would be insecure and should be replaced with secure authentication/storage in production."
+    "User reports they are unable to access the admin panel (post-deployment)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-a-modern-professional-premium-fully-responsive-multi-page-website-for-innovation-public-school-with-a-trustworthy-academic-elegant-look-using-a-clean-palette-blue-white-light-grey-rounded-sections-cards-soft-shadows-smooth-hover-effects-and-subtle-animations-ensure-fast-loading-and-seo-ready-markup-semantic-headings-page-titles-meta-descriptions",
-      "title": "Implement a modern, professional, premium, fully responsive multi-page website for “Innovation Public School” with a trustworthy, academic, elegant look using a clean palette (blue, white, light grey), rounded sections/cards, soft shadows, smooth hover effects, and subtle animations; ensure fast loading and SEO-ready markup (semantic headings, page titles, meta descriptions).",
+      "id": "feature-make-admin-login-reliably-grant-access-to-the-admin-dashboard-after-successful-credentials-entry-including-when-the-user-is-not-logged-in-with-internet-identity-anonymous-actor-ensure-the-system-does-not-get-stuck-on-verifying-admin-access-and-that-admin-renders-the-login-prompt-when-unauthenticated",
+      "title": "Make admin login reliably grant access to the /admin dashboard after successful credentials entry, including when the user is not logged in with Internet Identity (anonymous actor). Ensure the system does not get stuck on “Verifying admin access…” and that /admin renders the login prompt when unauthenticated.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-create-the-complete-site-structure-with-navigation-and-the-following-pages-home-about-us-academics-admissions-gallery-contact-include-a-consistent-header-navigation-and-a-footer-across-all-pages",
-      "title": "Create the complete site structure with navigation and the following pages: Home, About Us, Academics, Admissions, Gallery, Contact; include a consistent header navigation and a footer across all pages.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-the-home-page-with-the-specified-sections-and-copy-hero-section-with-a-large-school-building-students-image-main-heading-innovation-public-school-tagline-shaping-tomorrow-s-leaders-and-buttons-apply-now-and-contact-us-sections-for-about-the-school-short-intro-why-choose-us-4-cards-smart-classrooms-qualified-teachers-safe-campus-holistic-growth-our-programs-pre-primary-primary-secondary-achievements-highlights-gallery-preview-parent-testimonials-and-a-call-to-action-admissions-open-2026",
-      "title": "Build the Home page with the specified sections and copy: Hero section with a large school building/students image, main heading “Innovation Public School”, tagline “Shaping Tomorrow’s Leaders”, and buttons “Apply Now” and “Contact Us”; sections for About the School (short intro), Why Choose Us (4 cards: Smart Classrooms, Qualified Teachers, Safe Campus, Holistic Growth), Our Programs (Pre-Primary, Primary, Secondary), Achievements & Highlights, Gallery Preview, Parent Testimonials, and a call-to-action “Admissions Open 2026”.",
+      "id": "feature-ensure-frontend-admin-session-handling-provides-actionable-user-friendly-english-errors-when-adminlogin-validateadminsession-fail-e-g-invalid-credentials-unauthorized-backend-unavailable-and-never-exposes-credentials-in-logs-or-error-messages",
+      "title": "Ensure frontend admin session handling provides actionable, user-friendly English errors when adminLogin/validateAdminSession fail (e.g., invalid credentials, unauthorized, backend unavailable), and never exposes credentials in logs or error messages.",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-the-about-us-page-with-sections-for-vision-mission-principal-s-message-our-values-school-history-and-management-team",
-      "title": "Build the About Us page with sections for Vision & Mission, Principal’s Message, Our Values, School History, and Management Team.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-the-academics-page-with-sections-for-curriculum-subjects-teaching-methods-exams-assessment-and-co-curricular-activities",
-      "title": "Build the Academics page with sections for Curriculum, Subjects, Teaching Methods, Exams & Assessment, and Co-curricular Activities.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-the-admissions-page-with-step-by-step-process-eligibility-required-documents-an-online-enquiry-form-and-a-download-prospectus-button-that-downloads-a-static-pdf-asset",
-      "title": "Build the Admissions page with: step-by-step process, eligibility, required documents, an online enquiry form, and a “Download Prospectus” button that downloads a static PDF asset.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-the-gallery-page-with-a-responsive-photo-grid-and-category-filters-sections-for-events-classrooms-sports-and-cultural-programs",
-      "title": "Build the Gallery page with a responsive photo grid and category filters/sections for Events, Classrooms, Sports, and Cultural Programs.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-the-contact-page-with-address-phone-email-embedded-google-map-and-a-contact-form-that-submits-to-the-backend-as-an-enquiry-record",
-      "title": "Build the Contact page with address, phone, email, embedded Google Map, and a contact form that submits to the backend as an enquiry record.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-the-site-footer-with-school-logo-quick-links-contact-details-social-media-icons-and-innovation-public-school",
-      "title": "Implement the site footer with: School Logo, Quick Links, Contact Details, Social Media Icons, and “© Innovation Public School”.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-small-floating-admin-panel-icon-fixed-at-the-bottom-right-corner-on-every-page-clicking-it-opens-a-secure-login-popup",
-      "title": "Add a small floating “Admin Panel” icon fixed at the bottom-right corner on every page; clicking it opens a secure login popup.",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-admin-authentication-so-that-the-admin-panel-is-only-accessible-after-successful-login-with-the-provided-credentials-username-innovationpublicschools-password-innovation123publicschool-do-not-expose-the-password-in-client-side-source-code-and-ensure-authenticated-access-is-enforced-by-the-backend-for-all-admin-actions",
-      "title": "Implement Admin authentication so that the Admin Panel is only accessible after successful login with the provided credentials (Username: innovationpublicschools, Password: innovation123publicschool); do not expose the password in client-side source code, and ensure authenticated access is enforced by the backend for all admin actions.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-after-successful-admin-login-provide-a-clean-modern-simple-admin-dashboard-that-allows-editing-all-site-text-changing-images-adding-removing-sections-updating-gallery-photos-viewing-form-enquiries-tracking-number-of-visitors-editing-contact-details-and-controlling-pages-from-one-place",
-      "title": "After successful Admin login, provide a clean, modern, simple Admin Dashboard that allows: editing all site text, changing images, adding/removing sections, updating gallery photos, viewing form enquiries, tracking number of visitors, editing contact details, and controlling pages from one place.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-integrate-the-public-site-frontend-with-the-backend-so-public-pages-load-their-editable-content-text-enabled-disabled-sections-contact-details-gallery-data-from-the-backend-instead-of-hardcoded-values-with-sensible-initial-defaults-matching-the-requested-structure",
-      "title": "Integrate the public site frontend with the backend so public pages load their editable content (text, enabled/disabled sections, contact details, gallery data) from the backend instead of hardcoded values, with sensible initial defaults matching the requested structure.",
-      "reqIds": [
-        "REQ-14"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-visitor-tracking-on-the-frontend-so-each-page-view-triggers-a-backend-call-to-increment-analytics-counters-without-noticeably-impacting-performance",
-      "title": "Add visitor tracking on the frontend so each page view triggers a backend call to increment analytics counters without noticeably impacting performance.",
-      "reqIds": [
-        "REQ-15"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-consistent-visual-system-across-the-entire-site-typography-spacing-card-styles-button-styles-form-styles-and-motion-aligned-with-a-premium-academic-brand-in-blue-white-light-grey-and-ensure-accessibility-basics-contrast-focus-states-keyboard-navigability",
-      "title": "Apply a consistent visual system across the entire site (typography, spacing, card styles, button styles, form styles, and motion) aligned with a premium academic brand in blue/white/light grey, and ensure accessibility basics (contrast, focus states, keyboard navigability).",
-      "reqIds": [
-        "REQ-16"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-remove-the-dependency-on-internet-identity-for-admin-panel-access-so-that-admin-login-and-admin-route-protection-are-based-only-on-username-password-authentication",
-      "title": "Remove the dependency on Internet Identity for Admin Panel access so that admin login and admin route protection are based only on username + password authentication.",
-      "reqIds": [
-        "REQ-17"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-move-admin-credential-verification-to-the-backend-and-remove-any-hardcoded-admin-username-password-checks-from-frontend-source-code",
-      "title": "Move admin credential verification to the backend and remove any hardcoded admin username/password checks from frontend source code.",
-      "reqIds": [
-        "REQ-18"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-admin-dashboard-data-layer-to-call-the-backend-using-the-new-admin-session-mechanism-for-admin-only-queries-mutations-without-modifying-immutable-frontend-paths",
-      "title": "Update the Admin Dashboard data layer to call the backend using the new admin session mechanism for admin-only queries/mutations, without modifying immutable frontend paths.",
-      "reqIds": [
-        "REQ-20"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
-      "id": "AR-1",
-      "summary": "Create responsive, premium school website UI (blue/white/light grey, rounded sections, soft shadows, smooth hovers/animations, fast loading, SEO-ready)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
       "id": "AR-2",
-      "summary": "Implement site structure and pages: Home (hero + sections), About Us, Academics, Admissions (incl. enquiry form + download prospectus), Gallery, Contact, Footer",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Add floating Admin Panel icon on every page that opens secure login popup and then admin dashboard",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Admin dashboard capabilities: edit all text, change images, add/remove sections, manage gallery photos, view form enquiries, track visitors, edit contact details, control pages from one place",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-17",
-      "summary": "Create backend data models and persistence for: page content (sections and text), contact details, gallery items (including category), enquiries (from Admissions and Contact forms), and visitor analytics (page view counts).",
+      "summary": "Fix backend admin session/auth logic so that adminLogin does not fail due to authorization/role-assignment constraints and validateAdminSession accurately reflects the logged-in admin session. Session validation must work for the same caller principal that performed adminLogin, and logout must invalidate the session so validateAdminSession returns false afterward.",
       "reqIds": [
-        "REQ-13"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-20",
-      "summary": "Enforce admin authorization for all admin actions using the new username/password session mechanism (not Principal-based Internet Identity), including content section CRUD, gallery CRUD, enquiries management, and contact details updates.",
-      "reqIds": [
-        "REQ-19"
+        "REQ-2"
       ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "Innovation Public School",
+  "projectName": "Fix inability to access the admin panel (admin login/session + route guard)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

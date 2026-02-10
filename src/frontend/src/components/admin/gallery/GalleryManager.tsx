@@ -12,6 +12,7 @@ import {
   useDeleteGalleryItem,
 } from '../../../hooks/useQueries';
 import { toast } from 'sonner';
+import { getErrorMessage } from '../../../utils/errorMessage';
 import type { GalleryItem } from '../../../backend';
 import { ExternalBlob } from '../../../backend';
 import {
@@ -80,7 +81,8 @@ export default function GalleryManager() {
       setNewItem({ title: '', category: 'Events', isActive: true, imageFile: null });
       setUploadProgress(0);
     } catch (error) {
-      toast.error('Failed to create gallery item');
+      toast.error(getErrorMessage(error));
+      setUploadProgress(0);
     }
   };
 
@@ -95,7 +97,7 @@ export default function GalleryManager() {
       toast.success('Gallery item updated successfully');
       setEditingItem(null);
     } catch (error) {
-      toast.error('Failed to update gallery item');
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -106,7 +108,7 @@ export default function GalleryManager() {
       await deleteItem.mutateAsync(id);
       toast.success('Gallery item deleted successfully');
     } catch (error) {
-      toast.error('Failed to delete gallery item');
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -189,7 +191,7 @@ export default function GalleryManager() {
               </div>
               <Button onClick={handleCreate} disabled={createItem.isPending}>
                 <Upload className="mr-2 h-4 w-4" />
-                Upload Image
+                {createItem.isPending ? 'Uploading...' : 'Upload Image'}
               </Button>
             </div>
           </DialogContent>
@@ -251,7 +253,7 @@ export default function GalleryManager() {
                     disabled={updateItem.isPending}
                   >
                     <Save className="mr-2 h-4 w-4" />
-                    Save
+                    {updateItem.isPending ? 'Saving...' : 'Save'}
                   </Button>
                   <Button
                     size="sm"
@@ -289,6 +291,7 @@ export default function GalleryManager() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(item.id)}
+                      disabled={deleteItem.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

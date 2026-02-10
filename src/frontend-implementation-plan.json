@@ -1,93 +1,73 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin Panel: replace Internet Identity admin access with backend-verified username/password session",
+  "title": "Restore reliable admin access with session-backed login + guard (frontend-only)",
   "requirements": [
     {
-      "id": "REQ-17",
-      "summary": "Remove Internet Identity from Admin Panel access and protect /admin using a username/password admin session.",
+      "id": "REQ-1",
+      "summary": "Ensure /admin reliably shows a login prompt when unauthenticated, transitions to the dashboard after adminLogin (even for anonymous actor), persists access for the browser session, and avoids infinite “Verifying admin access…” states with clear retryable errors.",
       "acceptanceCriteria": [
-        "Accessing /admin while logged out shows an admin login prompt (username + password) and does not trigger or require an Internet Identity login flow.",
-        "After successful username/password login, the user is routed to /admin without using an Internet Identity identity.",
-        "Admin logout ends the username/password session and returns the user to a logged-out admin state."
+        "Navigating to /admin as a fresh visitor shows the Authentication Required screen (not an infinite loading state).",
+        "Clicking Login opens the Admin Panel Login modal and allows a successful login flow that results in the admin dashboard being rendered.",
+        "After a successful login, reloading the page at /admin keeps the admin dashboard accessible for the same browser session until logout (or until the session is invalidated).",
+        "If the backend actor is temporarily unavailable, the UI shows a clear English error state (not a blank page/spinner) and still allows retrying login."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useAdminAuth.ts",
-          "operation": "modify",
-          "description": "Replace Internet Identity-based admin auth with a username/password session-backed admin auth API (isAuthenticated, login, logout, loginStatus) that does not import or invoke useInternetIdentity."
+          "path": "frontend/src/hooks/adminSessionStore.ts",
+          "operation": "create",
+          "description": "Create a small shared admin-session token store (in-memory + sessionStorage) with subscribe/notify helpers so multiple useAdminSession callers stay synchronized (fixes login modal vs route-guard state mismatch). Persist token in sessionStorage (browser-session scope)."
         },
         {
           "path": "frontend/src/hooks/useAdminSession.ts",
-          "operation": "create",
-          "description": "Add a small admin-session utility hook to store/restore a backend-issued admin session indicator (e.g., token) in browser storage, expose helpers (get/set/clear) and a stable React-friendly state for route guards and mutations."
+          "operation": "modify",
+          "description": "Refactor to use the shared adminSessionStore for token state (instead of per-hook local state) and switch persistence from localStorage to sessionStorage. Add explicit, user-safe validation error state and a retry/refresh validation action. Ensure validation failures never leave the UI stuck and never log or expose credentials. Use the authorization component guidance for anonymous/guest handling and auth error hygiene; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminAuth.ts",
+          "operation": "modify",
+          "description": "Update derived admin-auth state to avoid blocking /admin on actor initialization when no admin token exists (fresh visitor should immediately see the Authentication Required screen). Only enter “checking auth” when a token exists and validation is in progress; propagate validation error + retry action for the guard UI. Use the authorization component guidance around authenticated vs guest behavior; verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/admin/AdminRouteGuard.tsx",
           "operation": "modify",
-          "description": "Update admin route protection to rely only on the new admin session state (not Principal/Internet Identity). When unauthenticated, automatically show the admin login prompt/modal on /admin rather than an Internet Identity flow, and use English-only messaging."
+          "description": "Adjust the guard UI logic to: (1) immediately render Authentication Required when no session token is present, (2) show a clear English error state when validation cannot be performed (e.g., backend unavailable) with a Retry button that re-runs validation and a Login button to open the modal, and (3) only show “Verifying admin access…” when a token exists and validation is actually in flight—preventing infinite loading. Use existing composed UI components only (do not modify frontend/src/components/ui)."
         },
         {
           "path": "frontend/src/components/admin/AdminLoginModal.tsx",
           "operation": "modify",
-          "description": "Switch the admin login modal to submit username/password to a backend capability and store the returned admin session indicator via the new session hook; ensure successful login routes to /admin and logout state returns to logged-out admin state, without any Internet Identity calls."
-        },
-        {
-          "path": "frontend/src/pages/admin/AdminDashboardPage.tsx",
-          "operation": "modify",
-          "description": "Update Admin Dashboard logout handling to clear the new username/password admin session (and React Query cache) and route the user back to a logged-out state, without using Internet Identity."
+          "description": "Ensure the login modal uses the shared session-backed auth state so a successful login immediately unlocks the /admin guard (no stale hook instances). Keep errors concise and actionable via existing getErrorMessage patterns, and ensure password is cleared on both success/failure and never appears in logs/messages. Use the authorization component guidance for error handling and logout/cache clearing patterns; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-18",
-      "summary": "Remove hardcoded admin credentials from the frontend and use backend credential verification with clear error handling.",
+      "id": "REQ-3",
+      "summary": "Provide user-friendly English errors for adminLogin/validateAdminSession failures (invalid credentials, unauthorized, backend unavailable), clear invalid/expired tokens, and ensure no credentials are exposed in UI or console output.",
       "acceptanceCriteria": [
-        "No frontend file contains the literal admin password (\"innovation123publicschool\") or performs local string comparisons for admin authentication.",
-        "The backend exposes a login method that accepts username and password and returns an authenticated admin session indicator (e.g., session token).",
-        "Invalid credentials are rejected by the backend and the frontend displays a clear error message in English (e.g., \"Invalid credentials\")."
+        "If adminLogin fails, the modal shows a concise English error and remains usable for another attempt.",
+        "If validateAdminSession fails due to an invalid/expired session, the stored token is cleared and the user is prompted to log in again (without leaving the admin UI in a broken state).",
+        "No UI or console output contains the entered username/password."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/admin/AdminLoginModal.tsx",
+          "path": "frontend/src/utils/errorMessage.ts",
           "operation": "modify",
-          "description": "Remove all hardcoded credential literals and local credential comparisons; call the backend login capability with username/password, show an English error (e.g., \"Invalid credentials\") on rejection, and handle generic failures (e.g., network/unknown) with an English fallback message."
-        },
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Update frontend backend type definitions to include the new admin login capability (username/password -> admin session indicator) and any related admin-session-based methods needed by the Admin Dashboard data layer."
-        },
-        {
-          "path": "frontend/src/hooks/useAdminAuth.ts",
-          "operation": "modify",
-          "description": "Ensure the admin auth hook no longer depends on Internet Identity and instead calls the backend login capability and persists only the returned admin session indicator (never credentials)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-20",
-      "summary": "Update Admin Dashboard React Query data layer to use the new admin session mechanism for admin-only reads/mutations without touching immutable frontend paths.",
-      "acceptanceCriteria": [
-        "Admin Dashboard screens (content manager, gallery manager, enquiries manager, contact details manager) continue to work after the authentication change.",
-        "Admin-only React Query hooks use the admin session mechanism when calling admin-only backend methods.",
-        "Implementation does not require edits to any immutable paths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update admin-only React Query hooks used by the Admin Dashboard (content CRUD, gallery CRUD, enquiries management, contact details updates) to include the admin session indicator from the new session hook when calling admin-only backend capabilities; keep existing hook exports so Admin UI screens continue to work without refactors."
+          "description": "Harden and align error mapping for admin auth flows: clearly distinguish invalid credentials vs unauthorized vs backend unavailable/network, keep messages concise English, and avoid echoing raw trap/stack text. Ensure messages cannot include user-entered credentials by design."
         },
         {
           "path": "frontend/src/hooks/useAdminSession.ts",
-          "operation": "create",
-          "description": "Expose a minimal API for retrieving the current admin session indicator for use by React Query hooks (e.g., a getter suitable for queryFn/mutationFn) and for clearing session on logout."
+          "operation": "modify",
+          "description": "Ensure validate failures are handled explicitly: invalid/expired clears the session token; backend-unavailable retains token but exposes a user-friendly error for the guard with a retry action; never log raw error objects that might contain sensitive data. Use the authorization component error-handling guidance; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/backend.d.ts",
+          "path": "frontend/src/components/admin/AdminLoginModal.tsx",
           "operation": "modify",
-          "description": "Align type definitions with the admin-session-based variants of admin-only backend capabilities so useQueries can pass the session indicator when performing admin-only reads/mutations."
+          "description": "Use sanitized errors only (from hook/util), keep the modal usable after failures, and ensure no console/UI output includes username/password. Confirm password-clearing happens immediately on submit completion paths and that no debug logging prints form values."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminRouteGuard.tsx",
+          "operation": "modify",
+          "description": "When session validation indicates invalid/expired, ensure the user is returned to the Authentication Required UI with an immediate path to re-login; when validation fails due to backend issues, render a clear retryable error state instead of a spinner/blank screen."
         }
       ]
     }

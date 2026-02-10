@@ -3,20 +3,15 @@ import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-
-const navigation = [
-  { name: 'Home', path: '/' },
-  { name: 'About Us', path: '/about' },
-  { name: 'Academics', path: '/academics' },
-  { name: 'Admissions', path: '/admissions' },
-  { name: 'Gallery', path: '/gallery' },
-  { name: 'Contact', path: '/contact' },
-];
+import { navigationLinks, deduplicateLinks } from '../../utils/siteNavigation';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouterState();
   const currentPath = router.location.pathname;
+
+  // Ensure navigation links are deduplicated
+  const navigation = deduplicateLinks(navigationLinks);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

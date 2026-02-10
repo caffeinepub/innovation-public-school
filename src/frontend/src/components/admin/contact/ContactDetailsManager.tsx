@@ -10,11 +10,13 @@ import {
   useUpdateContactDetails,
 } from '../../../hooks/useQueries';
 import { toast } from 'sonner';
+import { getErrorMessage } from '../../../utils/errorMessage';
 import type { ContactDetails } from '../../../backend';
 
 export default function ContactDetailsManager() {
-  const { data: contactDetails } = useGetContactDetails();
+  const { data: contactDetails, isLoading: isLoadingDetails } = useGetContactDetails();
   const updateDetails = useUpdateContactDetails();
+  const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState<ContactDetails>({
     address: '',
@@ -31,13 +33,30 @@ export default function ContactDetailsManager() {
   }, [contactDetails]);
 
   const handleSave = async () => {
+    // Prevent double-submit
+    if (isSaving || updateDetails.isPending) {
+      return;
+    }
+
+    setIsSaving(true);
     try {
       await updateDetails.mutateAsync(formData);
       toast.success('Contact details updated successfully');
     } catch (error) {
-      toast.error('Failed to update contact details');
+      const errorMessage = getErrorMessage(error);
+      toast.error(errorMessage);
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  if (isLoadingDetails) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="text-muted-foreground">Loading contact details...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -46,9 +65,9 @@ export default function ContactDetailsManager() {
           <Label htmlFor="address">Address</Label>
           <Textarea
             id="address"
-            rows={3}
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            rows={3}
           />
         </div>
 
@@ -73,17 +92,14 @@ export default function ContactDetailsManager() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="mapEmbed">Google Map Embed URL</Label>
+          <Label htmlFor="mapEmbed">Map Embed URL</Label>
           <Input
             id="mapEmbed"
             type="url"
-            placeholder="https://maps.google.com/..."
             value={formData.mapEmbed}
             onChange={(e) => setFormData({ ...formData, mapEmbed: e.target.value })}
+            placeholder="https://maps.google.com/?q=..."
           />
-          <p className="text-sm text-muted-foreground">
-            Get the embed URL from Google Maps (Share → Embed a map)
-          </p>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -92,13 +108,13 @@ export default function ContactDetailsManager() {
             checked={formData.displayMap}
             onCheckedChange={(checked) => setFormData({ ...formData, displayMap: checked })}
           />
-          <Label htmlFor="displayMap">Display map on Contact page</Label>
+          <Label htmlFor="displayMap">Display Map on Contact Page</Label>
         </div>
       </div>
 
-      <Button onClick={handleSave} disabled={updateDetails.isPending}>
+      <Button onClick={handleSave} disabled={isSaving || updateDetails.isPending}>
         <Save className="mr-2 h-4 w-4" />
-        Save Changes
+        {isSaving || updateDetails.isPending ? 'Saving...' : 'Save Changes'}
       </Button>
     </div>
   );

@@ -74,6 +74,8 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'adminLogin' : ActorMethod<[string, string], string>,
+  'adminLogout' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createContentSection' : ActorMethod<[ContentSection], undefined>,
   'createGalleryItem' : ActorMethod<[GalleryItem], undefined>,
@@ -87,23 +89,17 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getContactDetails' : ActorMethod<[], ContactDetails>,
   'getContentSection' : ActorMethod<[string], ContentSection>,
+  'getEnquiry' : ActorMethod<[string], Enquiry>,
   'getGalleryItemsByCategory' : ActorMethod<[string], Array<GalleryItem>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'markEnquiryAsRead' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitEnquiry' : ActorMethod<[Enquiry], undefined>,
-  'toggleMapDisplay' : ActorMethod<[], undefined>,
   'updateContactDetails' : ActorMethod<[ContactDetails], undefined>,
-  'updateContentSection' : ActorMethod<
-    [string, string, string, boolean],
-    undefined
-  >,
-  'updateGalleryItem' : ActorMethod<
-    [string, string, string, boolean],
-    undefined
-  >,
-  'updateMapEmbed' : ActorMethod<[string], undefined>,
+  'updateContentSection' : ActorMethod<[string, ContentSection], undefined>,
+  'updateGalleryItem' : ActorMethod<[string, GalleryItem], undefined>,
+  'validateAdminSession' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

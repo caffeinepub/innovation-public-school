@@ -111,3 +111,9 @@ export const defaultContent: Record<string, ContentSection> = {
     isPublished: true,
   },
 };
+
+// Export an array of all default sections for admin UI
+export const defaultContentSections: ContentSection[] = Object.values(defaultContent);
+
+// Helper to get all default section IDs
+export const defaultContentIds = Object.keys(defaultContent);

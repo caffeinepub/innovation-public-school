@@ -1,103 +1,75 @@
 {
   "kind": "build_request",
-  "title": "Switch Admin Panel authentication from Internet Identity to username/password only",
-  "priority": "normal",
+  "title": "Fix inability to access the admin panel (admin login/session + route guard)",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-17",
-      "text": "Remove the dependency on Internet Identity for Admin Panel access so that admin login and admin route protection are based only on username + password authentication.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "The access to admin panel should only be username and password oriented and not with internet identity"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Accessing /admin while logged out shows an admin login prompt (username + password) and does not trigger or require an Internet Identity login flow.",
-        "After successful username/password login, the user is routed to /admin without using an Internet Identity identity.",
-        "Admin logout ends the username/password session and returns the user to a logged-out admin state."
-      ]
-    },
-    {
-      "id": "REQ-18",
-      "text": "Move admin credential verification to the backend and remove any hardcoded admin username/password checks from frontend source code.",
+      "id": "REQ-1",
+      "text": "Make admin login reliably grant access to the /admin dashboard after successful credentials entry, including when the user is not logged in with Internet Identity (anonymous actor). Ensure the system does not get stuck on “Verifying admin access…” and that /admin renders the login prompt when unauthenticated.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "The access to admin panel should only be username and password oriented and not with internet identity"
+          "I am not able to access the admin panel"
         ]
       },
       "acceptanceCriteria": [
-        "No frontend file contains the literal admin password (\"innovation123publicschool\") or performs local string comparisons for admin authentication.",
-        "The backend exposes a login method that accepts username and password and returns an authenticated admin session indicator (e.g., session token).",
-        "Invalid credentials are rejected by the backend and the frontend displays a clear error message in English (e.g., \"Invalid credentials\")."
+        "Navigating to /admin as a fresh visitor shows the Authentication Required screen (not an infinite loading state).",
+        "Clicking Login opens the Admin Panel Login modal and allows a successful login flow that results in the admin dashboard being rendered.",
+        "After a successful login, reloading the page at /admin keeps the admin dashboard accessible for the same browser session until logout (or until the session is invalidated).",
+        "If the backend actor is temporarily unavailable, the UI shows a clear English error state (not a blank page/spinner) and still allows retrying login."
       ]
     },
     {
-      "id": "REQ-19",
-      "text": "Enforce admin authorization for all admin actions using the new username/password session mechanism (not Principal-based Internet Identity), including content section CRUD, gallery CRUD, enquiries management, and contact details updates.",
+      "id": "REQ-2",
+      "text": "Fix backend admin session/auth logic so that adminLogin does not fail due to authorization/role-assignment constraints and validateAdminSession accurately reflects the logged-in admin session. Session validation must work for the same caller principal that performed adminLogin, and logout must invalidate the session so validateAdminSession returns false afterward.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "The access to admin panel should only be username and password oriented and not with internet identity"
+          "I am not able to access the admin panel"
         ]
       },
       "acceptanceCriteria": [
-        "All backend mutations and admin-only reads used by the Admin Dashboard reject requests that do not include a valid admin session (e.g., missing/invalid/expired token).",
-        "Admin-only operations cannot be performed by anonymous callers without a valid admin session.",
-        "Public endpoints (e.g., submitting enquiries, reading published/public content and contact details) remain accessible without requiring an admin session."
+        "Calling adminLogin with valid credentials returns a non-empty session token.",
+        "Calling validateAdminSession with that token returns true for the same caller principal after login.",
+        "Calling adminLogout invalidates the session so validateAdminSession returns false afterward.",
+        "Invalid credentials do not create a valid session and return a safe error (no sensitive data)."
       ]
     },
     {
-      "id": "REQ-20",
-      "text": "Update the Admin Dashboard data layer to call the backend using the new admin session mechanism for admin-only queries/mutations, without modifying immutable frontend paths.",
+      "id": "REQ-3",
+      "text": "Ensure frontend admin session handling provides actionable, user-friendly English errors when adminLogin/validateAdminSession fail (e.g., invalid credentials, unauthorized, backend unavailable), and never exposes credentials in logs or error messages.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "The access to admin panel should only be username and password oriented and not with internet identity"
+          "I am not able to access the admin panel"
         ]
       },
       "acceptanceCriteria": [
-        "Admin Dashboard screens (content manager, gallery manager, enquiries manager, contact details manager) continue to work after the authentication change.",
-        "Admin-only React Query hooks use the admin session mechanism when calling admin-only backend methods.",
-        "Implementation does not require edits to any immutable paths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*)."
+        "If adminLogin fails, the modal shows a concise English error and remains usable for another attempt.",
+        "If validateAdminSession fails due to an invalid/expired session, the stored token is cleared and the user is prompted to log in again (without leaving the admin UI in a broken state).",
+        "No UI or console output contains the entered username/password."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*.",
-    "Use English for any user-facing text."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional canisters/services).",
+    "Do not modify files under frontend/src/components/ui or any frontend immutablePaths; compose existing UI components instead."
   ],
   "nonGoals": [
-    "Do not add third-party authentication providers (only custom username/password admin auth is required).",
-    "Do not change the public website content structure, styling system, or page layouts except where required to support the new admin login flow.",
-    "Do not implement multi-admin user management, password reset flows, or email/SMS verification unless explicitly requested later."
+    "Adding new admin product features beyond restoring access (e.g., new dashboard modules).",
+    "Introducing third-party auth providers; only existing mechanisms are in scope."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -1,7 +1,22 @@
 {
-  "frontend/src/hooks/useAdminSession.ts": "Custom hook for managing admin session tokens in localStorage with expiration handling and validation methods.",
-  "frontend/src/hooks/useAdminAuth.ts": "Admin authentication hook that manages username/password login flow and session state without using Internet Identity.",
-  "frontend/src/components/admin/AdminRouteGuard.tsx": "Route guard component that protects admin routes by checking session-based authentication and displays login modal when unauthenticated.",
-  "frontend/src/components/admin/AdminLoginModal.tsx": "Modal dialog for admin login with username and password fields that validates credentials and manages login state.",
-  "frontend/src/pages/admin/AdminDashboardPage.tsx": "Admin dashboard page with tabs for content, gallery, enquiries, contact, and analytics management, including session-based logout functionality."
+  "frontend/src/hooks/useAdminSession.ts": "Hook for managing admin session tokens using shared store with sessionStorage persistence, explicit validation error states, retry action, and sanitized error handling that never exposes credentials.",
+  "frontend/src/hooks/useAdminAuth.ts": "Simplified admin authentication hook that wraps useAdminSession and only shows \"checking auth\" state when a token exists and validation is in progress, with validation error and retry action propagation.",
+  "frontend/src/components/admin/AdminRouteGuard.tsx": "Route guard component that immediately shows Authentication Required when no token exists, displays clear retryable error states for backend/network issues, and only shows loading spinner during active validation.",
+  "frontend/src/components/admin/AdminLoginModal.tsx": "Modal dialog with username and password form for admin login that uses shared session-backed auth state, immediately clears password after each attempt, and displays only sanitized error messages.",
+  "frontend/src/pages/admin/AdminDashboardPage.tsx": "Admin dashboard page with tabs for content, gallery, enquiries, and contact management, using token-based logout and no principal ID display.",
+  "frontend/src/utils/siteNavigation.ts": "Centralized navigation configuration with a single source of truth for all site navigation links and a deduplication helper function to prevent duplicate link rendering.",
+  "frontend/src/components/layout/Header.tsx": "Site header component with logo, desktop navigation menu, and mobile sheet menu that imports navigation links from the centralized configuration and applies deduplication.",
+  "frontend/src/components/layout/Footer.tsx": "Site footer component with branding, quick links, contact information, and social media links that imports navigation links from the centralized configuration and applies deduplication.",
+  "frontend/src/components/home/GalleryPreview.tsx": "Gallery preview section component that displays up to 6 active gallery items with a link to the full gallery page, now includes unique identifiers (data-testid and id) to ensure single rendering verification.",
+  "frontend/src/content/defaultContent.ts": "Defines all default content sections for the website with exported arrays and helpers for admin UI to enumerate and merge with backend sections.",
+  "frontend/src/components/admin/content/ContentManager.tsx": "Admin content management component with working create/update/delete operations, proper error handling using getErrorMessage, and loading state indicators for all mutations.",
+  "frontend/src/hooks/useSiteContent.ts": "Hook for retrieving site content sections with fallback to default content when backend sections are not available, prioritizing published backend content.",
+  "frontend/src/utils/errorMessage.ts": "Utility function that converts unknown error values into user-friendly English messages with prioritized handling for invalid credentials, session errors, and backend availability issues while ensuring no sensitive data is exposed.",
+  "frontend/src/components/admin/contact/ContactDetailsManager.tsx": "Contact details management component with working save operation, proper error handling using getErrorMessage, double-submit prevention, and loading states.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations with fully implemented CRUD mutations for content sections, gallery items, enquiries, and contact details, including proper error handling with sanitized messages via getErrorMessage utility.",
+  "frontend/src/components/admin/AdminFloatingButton.tsx": "Floating admin button that opens the username/password login modal for admin access.",
+  "frontend/src/backend.d.ts": "TypeScript interface definitions for the backend canister including all data types and available methods for content, gallery, enquiries, contact details, user profiles, and role-based authorization.",
+  "frontend/src/components/admin/gallery/GalleryManager.tsx": "Admin gallery management component with working image upload, metadata editing, and deletion operations, including proper error handling using getErrorMessage and upload progress tracking.",
+  "frontend/src/components/admin/enquiries/EnquiriesManager.tsx": "Admin enquiries management component with working mark-as-read and delete operations, proper error handling using getErrorMessage, and loading state indicators.",
+  "frontend/src/hooks/adminSessionStore.ts": "Shared admin session token store with sessionStorage persistence and pub-sub pattern to synchronize all useAdminSession hook instances across components."
 }

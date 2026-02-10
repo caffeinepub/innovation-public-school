@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Switch Admin Panel authentication from Internet Identity to backend-verified username/password sessions, and protect all admin actions using that session mechanism.
+**Goal:** Restore reliable access to the `/admin` panel by fixing admin login/session handling and the `/admin` route guard so users don’t get stuck verifying access.
 
 **Planned changes:**
-- Remove/disable any Internet Identity-based login triggers for the Admin Panel and gate `/admin` behind a username + password login prompt when logged out.
-- Add backend login/logout support that verifies admin credentials and returns a session indicator (e.g., token), and ensure the frontend contains no hardcoded admin password or local credential checks.
-- Enforce admin authorization on all admin-only backend reads/mutations (content, gallery, enquiries, contact details) using the new session mechanism, while keeping public endpoints accessible.
-- Update the Admin Dashboard data layer (React Query hooks / API calls) to include the admin session mechanism for admin-only operations, without editing immutable frontend paths.
+- Update `/admin` route guarding so fresh visitors see an “Authentication Required” prompt (not an infinite “Verifying admin access…” state) and authenticated admins are routed to the dashboard.
+- Fix backend admin session/auth flow so `adminLogin` issues a valid session token, `validateAdminSession` correctly validates it for the same caller principal, and `adminLogout` invalidates it.
+- Improve frontend admin session handling: store/clear the session token correctly across reloads, show concise English error states for invalid credentials/unauthorized/backend unavailable, and allow retry.
+- Ensure no credentials are logged or exposed in UI/console error messages.
 
-**User-visible outcome:** Visiting `/admin` while logged out shows a username/password login prompt (no Internet Identity flow). After logging in, the admin can use all dashboard features as before; logging out ends the session and returns to the logged-out admin state.
+**User-visible outcome:** Visiting `/admin` reliably shows a login prompt when unauthenticated, successful admin login opens the admin dashboard (and remains accessible on reload for the same session), and failures show clear retryable errors instead of a spinner or blank state.

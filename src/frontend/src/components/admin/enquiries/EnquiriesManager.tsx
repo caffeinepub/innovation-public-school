@@ -8,6 +8,7 @@ import {
   useDeleteEnquiry,
 } from '../../../hooks/useQueries';
 import { toast } from 'sonner';
+import { getErrorMessage } from '../../../utils/errorMessage';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,7 @@ export default function EnquiriesManager() {
       await markAsRead.mutateAsync(id);
       toast.success('Enquiry marked as read');
     } catch (error) {
-      toast.error('Failed to mark enquiry as read');
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -42,7 +43,7 @@ export default function EnquiriesManager() {
         setSelectedEnquiry(null);
       }
     } catch (error) {
-      toast.error('Failed to delete enquiry');
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -106,6 +107,7 @@ export default function EnquiriesManager() {
                       e.stopPropagation();
                       handleDelete(enquiry.id);
                     }}
+                    disabled={deleteEnquiry.isPending}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

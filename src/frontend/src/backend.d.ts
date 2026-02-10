@@ -54,6 +54,8 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    adminLogin(username: string, password: string): Promise<string>;
+    adminLogout(token: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createContentSection(section: ContentSection): Promise<void>;
     createGalleryItem(item: GalleryItem): Promise<void>;
@@ -67,15 +69,15 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getContactDetails(): Promise<ContactDetails>;
     getContentSection(id: string): Promise<ContentSection>;
+    getEnquiry(id: string): Promise<Enquiry>;
     getGalleryItemsByCategory(category: string): Promise<Array<GalleryItem>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     markEnquiryAsRead(id: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitEnquiry(newEnquiry: Enquiry): Promise<void>;
-    toggleMapDisplay(): Promise<void>;
-    updateContactDetails(newDetails: ContactDetails): Promise<void>;
-    updateContentSection(id: string, newTitle: string, newBody: string, isPublished: boolean): Promise<void>;
-    updateGalleryItem(id: string, newTitle: string, newCategory: string, isActive: boolean): Promise<void>;
-    updateMapEmbed(mapLink: string): Promise<void>;
+    updateContactDetails(details: ContactDetails): Promise<void>;
+    updateContentSection(id: string, section: ContentSection): Promise<void>;
+    updateGalleryItem(id: string, item: GalleryItem): Promise<void>;
+    validateAdminSession(token: string): Promise<boolean>;
 }
